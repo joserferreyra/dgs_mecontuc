@@ -1,0 +1,11 @@
+{
+    "default":{
+        "pageSize" : {
+            "width" : 841.89,
+            "heigth": 595.28
+        },
+        "fontSize": 7,
+        "x": 5,
+        "dy": 6.5
+    }
+}
