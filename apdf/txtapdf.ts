@@ -1,8 +1,12 @@
 
 import { readLines, PDFDocument, PageSizes, StandardFonts, path, myMod, parse } from "./deps.ts";
 
-async function textFileToPdf(filename: string, fileoutput: string, param: any) {
+async function textFileToPdf(filename: string, outputdir: string, param?: any) {
 
+  if (!param) {
+    param = myMod.loadConfigFrom("./config.json").default;
+    console.log(param);
+  }
   const pdfDoc = await PDFDocument.create();
   //
   pdfDoc.setCreator('App desarrollada por José R. Ferreyra');
@@ -37,9 +41,9 @@ async function textFileToPdf(filename: string, fileoutput: string, param: any) {
     }
 
     pdfDoc.removePage(countPag);
-
     const pdfBytes = await pdfDoc.save();
-    await Deno.writeFile(fileoutput, pdfBytes);
+    const pathfileoutput = path.join(outputdir, path.basename(filename).replace(path.posix.extname(filename), '.pdf'));
+    await Deno.writeFile(pathfileoutput, pdfBytes);
     console.log("Archivo", filename, "\tLineas: ", countLines, "\tPáginas", countPag);
 
   } catch (error) {
@@ -50,22 +54,52 @@ async function textFileToPdf(filename: string, fileoutput: string, param: any) {
 
 async function main() {
 
-  const param = myMod.loadConfigFrom("./config.json").default;
-  const tempDir = 'temp';
-  if (!myMod.exists(tempDir)) {
-    Deno.mkdirSync(tempDir);
+  //const param = myMod.loadConfigFrom("./config.json").default;
+
+
+  try {
+    if (Deno.args[0]) {
+      let inputdir = Deno.args[0];
+      Deno.readDirSync(inputdir);
+
+      const tempDir = 'output';
+
+      if (!myMod.exists(tempDir)) {
+        Deno.mkdirSync(tempDir);
+      }
+
+      const tempDirName0 = Deno.makeTempDirSync({ dir: tempDir });
+
+      for await (const dirEntry of Deno.readDir(inputdir)) {
+        if (dirEntry.isFile) {
+          console.log(dirEntry.name);
+          textFileToPdf( path.join(inputdir, dirEntry.name), tempDirName0);
+        }
+      }
+
+    }
+  } catch (error) {
+    console.log("No se puede encontrar la ruta del directorio especificado.");
   }
-  const tempDirName0 = Deno.makeTempDirSync({ dir: tempDir });
-  if (param) {
+
+  //if (param) {
+
+
+  /*
+    
     for (let i = 0; i < Deno.args.length; i++) {
       const filename = Deno.args[i];
       if (myMod.exists(filename)) {
-        const pathfileoutput = path.join(tempDirName0, path.basename(filename).replace(path.posix.extname(filename), '.pdf'));
-        textFileToPdf(filename, pathfileoutput, param);
+        //const pathfileoutput = path.join(tempDirName0, path.basename(filename).replace(path.posix.extname(filename), '.pdf'));
+        textFileToPdf(filename, tempDirName0);
       }
     }
-  }
-  console.log("Archivos generados en la carpeta: ", tempDirName0);
+    */
+
+  //}
+
+  //console.log("Archivos generados en la carpeta: ", tempDirName0);
+
 }
 
 main();

@@ -1,2 +1,4 @@
 .git
-txtapdf.exe
+./apdf/txtapdf.exe
+./apdf/output
+./apdf/tmp_input
